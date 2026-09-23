@@ -10,16 +10,33 @@ YOUTUBE_CLIENT_SECRET = os.environ.get("YOUTUBE_CLIENT_SECRET")
 YOUTUBE_REFRESH_TOKEN = os.environ.get("YOUTUBE_REFRESH_TOKEN")
 
 def generate_script_with_gemini():
-    """توليد نص الفيديو أو فكرة باستخدام نموذج Gemini"""
+    """توليد نص الفيديو مع تجربة عدة موديلات تلقائياً"""
     print("🤖 جاري الاتصال بنموذج Gemini...")
     genai.configure(api_key=GEMINI_API_KEY)
     
-    # استخدام موديل gemini-2.5-flash
-    model = genai.GenerativeModel('gemini-2.5-flash')
+    # قائمة الموديلات التي سيعمل البوت على تجربتها بالترتيب
+    models_to_try = [
+        'gemini-1.5-flash',
+        'gemini-1.5-pro',
+        'gemini-pro'
+    ]
     
-    prompt = "اكتب عنوانًا وجذابًا وفكرة قصة قصيرة للفيديو القادم."
-    response = model.generate_content(prompt)
-    
+    response = None
+    for model_name in models_to_try:
+        try:
+            print(f"🔄 محاولة استخدام الموديل: {model_name}")
+            model = genai.GenerativeModel(model_name)
+            prompt = "اكتب عنوانًا جذابًا وفكرة قصة قصيرة للفيديو القادم."
+            response = model.generate_content(prompt)
+            print(f"✅ تم النجاح باستخدام الموديل: {model_name}")
+            break
+        except Exception as e:
+            print(f"⚠️ فشل الموديل {model_name} والسبب: {e}")
+            continue
+            
+    if not response:
+        raise Exception("عذراً، فشلت كل الموديلات في الاستجابة.")
+        
     print("✨ تم إنشاء النص بنجاح:")
     print(response.text)
     return response.text

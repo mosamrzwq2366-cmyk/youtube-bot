@@ -17,10 +17,8 @@ def generate_viral_metadata():
     """توليد عنوان، ووصف، وهوك أمريكي احترافي ومتجدد كلياً عبر Gemini"""
     print("🤖 جاري التواصل مع ذكاء Gemini لتوليد محتوى فيرل فريد...")
     
-    # محاولة استخدام أحدث النماذج المتاحة
     models_to_try = ["gemini-3.5-flash", "gemini-2.5-flash", "gemini-1.5-flash"]
     
-    # أفكار متنوعة لضمان تجدد المحتوى بالكامل في كل مرة
     themes = [
         "Epic parkour escape from high-speed laser traps and explosions",
         "Insane anime sword fight with glowing VFX and boss defeat",
@@ -64,7 +62,6 @@ def generate_viral_metadata():
     if not raw_text:
         raise Exception("❌ فشل توليد المحتوى من جميع نماذج Gemini المتاحة.")
         
-    # تنزيل وتحليل الـ JSON الناتج
     try:
         clean_json = raw_text.replace("```json", "").replace("```", "").strip()
         parsed = json.loads(clean_json)
@@ -72,14 +69,12 @@ def generate_viral_metadata():
         description = parsed.get("description", "Insane Stickman VFX! #shorts #stickman")
         return title, description
     except:
-        # نظام طوارئ لو جاء النص غير مصمم كـ JSON صافي
         return f"Insane Stickman Challenge #{unique_seed}", raw_text[:200] + " #shorts #stickman #viral"
 
 def get_random_video_file():
     """البحث عن ملفات فيديو داخل المستودع واختيار فيديو عشوائي للنشر"""
     print("📁 جاري البحث عن ملفات الفيديو المتاحة...")
     
-    # البحث في المجلد الحالي والمجلدات الفرعية عن ملفات فيديو mp4
     video_files = []
     for root, dirs, files in os.walk("."):
         for file in files:
@@ -87,13 +82,12 @@ def get_random_video_file():
                 video_files.append(os.path.join(root, file))
                 
     if not video_files:
-        # لو مفيش، نشوف لو فيه ملف باسم video.mp4 تقليدي
         if os.path.exists("video.mp4"):
             return "video.mp4"
         raise Exception("❌ لم يتم العثور على أي ملف فيديو بصيغة mp4 في المستودع! يرجى رفع ملفات الفيديو الخاصة بك.")
         
     chosen_video = random.choice(video_files)
-    print(v"🎬 تم اختيار الفيديو عشوائياً للنشر: {chosen_video}")
+    print(f"🎬 تم اختيار الفيديو عشوائياً للنشر: {chosen_video}")
     return chosen_video
 
 def upload_video_to_youtube(title, description, video_path):
@@ -115,10 +109,10 @@ def upload_video_to_youtube(title, description, video_path):
             "title": title[:90],
             "description": description + "\n\n#shorts #stickman #animation #epic #viral #trending #vfx",
             "tags": ["shorts", "stickman", "animation", "epic", "vfx", "viral", "trending", "action"],
-            "categoryId": "1" # فئة الترفيه والرسوم المتحركة
+            "categoryId": "1"
         },
         "status": {
-            "privacyStatus": "public", # نشر عام ومباشر للجمهور
+            "privacyStatus": "public",
             "selfDeclaredMadeForKids": False
         }
     }
@@ -139,17 +133,10 @@ def upload_video_to_youtube(title, description, video_path):
 
 def main():
     print("🚀 بدء تنفيذ نظام النشر الآلي بالكامل...")
-    
-    # 1. توليد العنوان والوصف المتجدد
     title, description = generate_viral_metadata()
     print(f"📌 العنوان المتولد: {title}")
-    
-    # 2. اختيار فيديو عشوائي من الملفات المتاحة
     video_path = get_random_video_file()
-    
-    # 3. الرفع التلقائي على يوتيوب
     upload_video_to_youtube(title, description, video_path)
-    
     print("🎉 تمت العملية بنجاح وبدون أي تدخل بشري!")
 
 if __name__ == "__main__":

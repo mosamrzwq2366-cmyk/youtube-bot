@@ -11,35 +11,35 @@ YOUTUBE_CLIENT_SECRET = os.environ.get("YOUTUBE_CLIENT_SECRET")
 YOUTUBE_REFRESH_TOKEN = os.environ.get("YOUTUBE_REFRESH_TOKEN")
 
 def generate_script_with_gemini():
-    """تجربة نماذج متعددة للتعامل مع الضغط المؤقت 503"""
-    print("🤖 جاري الاتصال بنموذج Gemini...")
+    """توليد النص باستخدام موديل gemini-pro المستقر مع إعادة المحاولة"""
+    print("🤖 جاري الاتصال بنموذج Gemini Pro...")
     
-    # قائمة النماذج لتجربتها بالترتيب
-    models_to_try = ["gemini-3.6-flash", "gemini-2.5-flash", "gemini-1.5-flash"]
+    # استخدام موديل gemini-pro لأنه الأثبت والأكثر استقراراً للخوادم
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={GEMINI_API_KEY}"
     
-    for model_name in models_to_try:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={GEMINI_API_KEY}"
-        headers = {"Content-Type": "application/json"}
-        data = {
-            "contents": [{
-                "parts": [{"text": "اكتب عنوانًا جذابًا وفكرة قصة قصيرة لفيديو يوتيوب قصير (Shorts)."}]
-            }]
-        }
-        
-        print(f"🔄 محاولة استخدام النموذج: {model_name}...")
+    headers = {"Content-Type": "application/json"}
+    data = {
+        "contents": [{
+            "parts": [{"text": "اكتب عنوانًا جذابًا وفكرة قصة قصيرة لفيديو يوتيوب قصير (Shorts)."}]
+        }]
+    }
+    
+    # محاولة الاتصال حتى 3 مرات لو حصل ضغط مؤقت
+    for attempt in range(1, 4):
+        print(f"🔄 محاولة الاتصال رقم {attempt}...")
         response = requests.post(url, headers=headers, data=json.dumps(data))
         
         if response.status_code == 200:
             result_json = response.json()
             script_text = result_json["candidates"][0]["content"]["parts"][0]["text"]
-            print(f"✨ نجح توليد النص باستخدام {model_name}:")
+            print("✨ تم إنشاء النص بنجاح:")
             print(script_text)
             return script_text
         else:
-            print(f"⚠️ فشل النموذج {model_name} (كود الاستجابة {response.status_code}): {response.text}")
-            time.sleep(2)
+            print(f"⚠️ محاولة فاشلة (كود الاستجابة {response.status_code}): {response.text}")
+            time.sleep(3)
             
-    raise Exception("❌ فشلت جميع النماذج بسبب الضغط (503)، يجدر إعادة المحاولة لاحقاً.")
+    raise Exception("❌ فشل الاتصال بـ Gemini بعد عدة محاولات بسبب ضغط الخوادم.")
 
 def get_youtube_service():
     print("🔐 جاري الاتصال بحساب يوتيوب...")

@@ -11,11 +11,11 @@ YOUTUBE_CLIENT_SECRET = os.environ.get("YOUTUBE_CLIENT_SECRET")
 YOUTUBE_REFRESH_TOKEN = os.environ.get("YOUTUBE_REFRESH_TOKEN")
 
 def generate_script_with_gemini():
-    """توليد النص باستخدام أحدث موديل مدعوم gemini-2.5-flash"""
-    print("🤖 جاري الاتصال بنموذج Gemini 2.5 Flash الجديد...")
+    """توليد النص باستخدام أحدث موديل مدعوم gemini-3.6-flash"""
+    print("🤖 جاري الاتصال بنموذج Gemini 3.6 Flash الجديد...")
     
     # تحديث مسار الرابط للعمل مع الموديل الجديد المحدث من جوجل
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key={GEMINI_API_KEY}"
     
     headers = {
         "Content-Type": "application/json"

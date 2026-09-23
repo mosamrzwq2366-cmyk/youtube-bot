@@ -10,39 +10,34 @@ YOUTUBE_CLIENT_SECRET = os.environ.get("YOUTUBE_CLIENT_SECRET")
 YOUTUBE_REFRESH_TOKEN = os.environ.get("YOUTUBE_REFRESH_TOKEN")
 
 def generate_script_with_gemini():
-    """اختيار أحدث موديل أساسي متوفر وتوليد النص تلقائياً"""
+    """تجربة الموديلات المستقرة والحديثة حصرياً بالترتيب"""
     print("🤖 جاري الاتصال بنموذج Gemini...")
     genai.configure(api_key=GEMINI_API_KEY)
     
-    print("🔍 جاري فحص الموديلات المتاحة...")
-    chosen_model_name = None
+    # القائمة البيضاء المحدثة للموديلات المتاحة والمدعومة حالياً
+    models_to_try = [
+        'gemini-1.5-flash',
+        'gemini-1.5-pro',
+        'gemini-pro',
+        'gemini-1.0-pro'
+    ]
     
-    # البحث عن موديل فلاش رئيسي ومناسب (استبعاد نماذج الصوت أو البريفيو الخاصة)
-    for m in genai.list_models():
-        if 'generateContent' in m.supported_generation_methods:
-            name = m.name.replace("models/", "")
-            print(f" - متاح: {name}")
-            # تفضيل موديلات الفلاش الحديثة مثل 3.6 أو 1.5
-            if "flash" in name and "tts" not in name and "preview" not in name:
-                chosen_model_name = name
-                break
-    
-    # إذا لم يجد فلاش صافي، يأخذ أي موديل متاح يدعم التوليد
-    if not chosen_model_name:
-        for m in genai.list_models():
-            if 'generateContent' in m.supported_generation_methods:
-                chosen_model_name = m.name.replace("models/", "")
-                break
-                
-    if not chosen_model_name:
-        raise Exception("❌ لم يتم العثور على أي موديل متاح يدعم توليد المحتوى.")
-
-    print(f"🚀 سيتم استخدام الموديل: {chosen_model_name}")
-    
-    model = genai.GenerativeModel(chosen_model_name)
-    prompt = "اكتب عنوانًا جذابًا وفكرة قصة قصيرة للفيديو القادم."
-    response = model.generate_content(prompt)
-    
+    response = None
+    for model_name in models_to_try:
+        try:
+            print(f"🔄 محاولة استخدام الموديل: {model_name}")
+            model = genai.GenerativeModel(model_name)
+            prompt = "اكتب عنوانًا جذابًا وفكرة قصة قصيرة للفيديو القادم."
+            response = model.generate_content(prompt)
+            print(f"✅ نجح الاتصال بالموديل: {model_name}")
+            break
+        except Exception as e:
+            print(f"⚠️ تخطي الموديل {model_name} بسبب خطأ: {e}")
+            continue
+            
+    if not response:
+        raise Exception("❌ فشلت جميع الموديلات في الاستجابة، تأكد من صحة الـ GEMINI_API_KEY.")
+        
     print("✨ تم إنشاء النص بنجاح:")
     print(response.text)
     return response.text

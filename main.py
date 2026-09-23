@@ -10,26 +10,36 @@ YOUTUBE_CLIENT_SECRET = os.environ.get("YOUTUBE_CLIENT_SECRET")
 YOUTUBE_REFRESH_TOKEN = os.environ.get("YOUTUBE_REFRESH_TOKEN")
 
 def generate_script_with_gemini():
-    """فحص الموديلات المتاحة فعلياً للمفتاح وتوليد النص"""
+    """اختيار أحدث موديل أساسي متوفر وتوليد النص تلقائياً"""
     print("🤖 جاري الاتصال بنموذج Gemini...")
     genai.configure(api_key=GEMINI_API_KEY)
     
-    # طباعة الموديلات المتاحة لحسابك للتأكيد
-    print("🔍 جاري البحث عن الموديلات المتاحة لحسابك...")
-    available_models = []
+    print("🔍 جاري فحص الموديلات المتاحة...")
+    chosen_model_name = None
+    
+    # البحث عن موديل فلاش رئيسي ومناسب (استبعاد نماذج الصوت أو البريفيو الخاصة)
     for m in genai.list_models():
         if 'generateContent' in m.supported_generation_methods:
-            print(f" - متاح: {m.name}")
-            available_models.append(m.name)
-            
-    if not available_models:
-        raise Exception("❌ عذراً، هذا المفتاح لا يمتلك أي موديلات متاحة لـ generateContent. تأكد أنك نسخت المفتاح الصحيح من Google AI Studio.")
+            name = m.name.replace("models/", "")
+            print(f" - متاح: {name}")
+            # تفضيل موديلات الفلاش الحديثة مثل 3.6 أو 1.5
+            if "flash" in name and "tts" not in name and "preview" not in name:
+                chosen_model_name = name
+                break
     
-    # اختيار أول موديل متاح تلقائياً
-    chosen_model = available_models[0]
-    print(f"🚀 سيتم استخدام الموديل المتاح: {chosen_model}")
+    # إذا لم يجد فلاش صافي، يأخذ أي موديل متاح يدعم التوليد
+    if not chosen_model_name:
+        for m in genai.list_models():
+            if 'generateContent' in m.supported_generation_methods:
+                chosen_model_name = m.name.replace("models/", "")
+                break
+                
+    if not chosen_model_name:
+        raise Exception("❌ لم يتم العثور على أي موديل متاح يدعم توليد المحتوى.")
+
+    print(f"🚀 سيتم استخدام الموديل: {chosen_model_name}")
     
-    model = genai.GenerativeModel(chosen_model)
+    model = genai.GenerativeModel(chosen_model_name)
     prompt = "اكتب عنوانًا جذابًا وفكرة قصة قصيرة للفيديو القادم."
     response = model.generate_content(prompt)
     

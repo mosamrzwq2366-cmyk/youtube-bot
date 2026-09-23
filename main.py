@@ -10,33 +10,29 @@ YOUTUBE_CLIENT_SECRET = os.environ.get("YOUTUBE_CLIENT_SECRET")
 YOUTUBE_REFRESH_TOKEN = os.environ.get("YOUTUBE_REFRESH_TOKEN")
 
 def generate_script_with_gemini():
-    """توليد نص الفيديو مع تجربة عدة موديلات تلقائياً"""
+    """فحص الموديلات المتاحة فعلياً للمفتاح وتوليد النص"""
     print("🤖 جاري الاتصال بنموذج Gemini...")
     genai.configure(api_key=GEMINI_API_KEY)
     
-    # قائمة الموديلات التي سيعمل البوت على تجربتها بالترتيب
-    models_to_try = [
-        'gemini-1.5-flash',
-        'gemini-1.5-pro',
-        'gemini-pro'
-    ]
-    
-    response = None
-    for model_name in models_to_try:
-        try:
-            print(f"🔄 محاولة استخدام الموديل: {model_name}")
-            model = genai.GenerativeModel(model_name)
-            prompt = "اكتب عنوانًا جذابًا وفكرة قصة قصيرة للفيديو القادم."
-            response = model.generate_content(prompt)
-            print(f"✅ تم النجاح باستخدام الموديل: {model_name}")
-            break
-        except Exception as e:
-            print(f"⚠️ فشل الموديل {model_name} والسبب: {e}")
-            continue
+    # طباعة الموديلات المتاحة لحسابك للتأكيد
+    print("🔍 جاري البحث عن الموديلات المتاحة لحسابك...")
+    available_models = []
+    for m in genai.list_models():
+        if 'generateContent' in m.supported_generation_methods:
+            print(f" - متاح: {m.name}")
+            available_models.append(m.name)
             
-    if not response:
-        raise Exception("عذراً، فشلت كل الموديلات في الاستجابة.")
-        
+    if not available_models:
+        raise Exception("❌ عذراً، هذا المفتاح لا يمتلك أي موديلات متاحة لـ generateContent. تأكد أنك نسخت المفتاح الصحيح من Google AI Studio.")
+    
+    # اختيار أول موديل متاح تلقائياً
+    chosen_model = available_models[0]
+    print(f"🚀 سيتم استخدام الموديل المتاح: {chosen_model}")
+    
+    model = genai.GenerativeModel(chosen_model)
+    prompt = "اكتب عنوانًا جذابًا وفكرة قصة قصيرة للفيديو القادم."
+    response = model.generate_content(prompt)
+    
     print("✨ تم إنشاء النص بنجاح:")
     print(response.text)
     return response.text
@@ -58,14 +54,9 @@ def get_youtube_service():
 
 def main():
     print("🚀 بدء تشغيل البوت التلقائي...")
-    
-    # 1. اختبار Gemini API
     script = generate_script_with_gemini()
-    
-    # 2. اختبار YouTube API
     youtube = get_youtube_service()
-    
-    print("✅ تم التحقق من عمل المفاتيح والاتصال بـ Gemini و YouTube بنجاح!")
+    print("✅ تم التحقق من عمل المفاتيح والاتصال بنجاح!")
 
 if __name__ == "__main__":
     main()
